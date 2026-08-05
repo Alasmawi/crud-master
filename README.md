@@ -52,8 +52,11 @@ Flask + SQLAlchemy CRUD API backed by PostgreSQL (`movies_db`, table `movies`: `
 
 No HTTP endpoints. Consumes JSON messages from `billing_queue` (durable), inserts a row into
 `billing_db.orders` (`id`, `user_id`, `number_of_items`, `total_amount`), and acks only after the DB
-write succeeds — a failed insert `nack`s and requeues. On startup it drains any messages that piled up
-in the queue while it was stopped.
+write succeeds. Failures are split by cause: a write that failed because the database was unreachable
+`nack`s with requeue (retrying will eventually work), while a message that can't be parsed at all is
+`nack`ed *without* requeue — retrying a malformed payload just redelivers it forever and blocks
+everything behind it in the queue. On startup it drains any messages that piled up while it was
+stopped.
 
 ### API Gateway (`srcs/api-gateway-app`)
 
@@ -67,6 +70,11 @@ in the queue while it was stopped.
 See [`.env`](.env) for the full list: PostgreSQL credentials for both databases, RabbitMQ credentials,
 and each service's bind host/port. Vagrant reads this file directly and forwards the relevant subset
 to each VM's provisioning script — nothing is hardcoded in the application code.
+
+`RABBITMQ_USER` deliberately isn't `guest`. RabbitMQ refuses the built-in `guest` account on any
+connection that isn't loopback, and gateway-vm reaches the broker on billing-vm across the private
+network — so `guest` would work in a single-VM test and fail the moment the services are actually
+split apart. `scripts/billing-vm.sh` refuses to provision with it and deletes the account outright.
 
 ## Running locally (no Vagrant, fast iteration loop)
 

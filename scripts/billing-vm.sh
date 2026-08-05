@@ -15,14 +15,24 @@ sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname='${BILLING_DB_US
 sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='${BILLING_DB_NAME}'" | grep -q 1 || \
     sudo -u postgres psql -c "CREATE DATABASE ${BILLING_DB_NAME} OWNER ${BILLING_DB_USER};"
 
-# RabbitMQ user matching RABBITMQ_USER/PASSWORD (guest is loopback-only by default).
-if [ "${RABBITMQ_USER}" != "guest" ]; then
-    rabbitmqctl user_exists "${RABBITMQ_USER}" || rabbitmqctl add_user "${RABBITMQ_USER}" "${RABBITMQ_PASSWORD}"
-    rabbitmqctl set_user_tags "${RABBITMQ_USER}" administrator
-    rabbitmqctl set_permissions -p / "${RABBITMQ_USER}" ".*" ".*" ".*"
-else
-    rabbitmqctl set_permissions -p / guest ".*" ".*" ".*"
+# RabbitMQ user matching RABBITMQ_USER/PASSWORD. The built-in `guest`
+# account is refused on any non-loopback connection, and gateway-vm
+# connects across the private network -- so a real user is required, and
+# `guest` is removed rather than left listening with a default password.
+if [ "${RABBITMQ_USER}" = "guest" ]; then
+    echo "RABBITMQ_USER must not be 'guest': RabbitMQ rejects it from anywhere but localhost," >&2
+    echo "and gateway-vm publishes to this broker over the private network. Set it in .env." >&2
+    exit 1
 fi
+
+if rabbitmqctl list_users --formatter json | grep -q "\"${RABBITMQ_USER}\""; then
+    rabbitmqctl change_password "${RABBITMQ_USER}" "${RABBITMQ_PASSWORD}"
+else
+    rabbitmqctl add_user "${RABBITMQ_USER}" "${RABBITMQ_PASSWORD}"
+fi
+rabbitmqctl set_user_tags "${RABBITMQ_USER}" administrator
+rabbitmqctl set_permissions -p / "${RABBITMQ_USER}" ".*" ".*" ".*"
+rabbitmqctl delete_user guest 2>/dev/null || true
 
 cd "$APP_DIR"
 python3 -m venv venv
