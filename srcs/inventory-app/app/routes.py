@@ -20,7 +20,7 @@ def get_movies():
 def create_movie():
     data = request.get_json(silent=True) or {}
     title = data.get("title")
-    if not title:
+    if not isinstance(title, str) or not title.strip():
         return jsonify({"error": "title is required"}), 400
 
     movie = Movie(title=title, description=data.get("description"))
@@ -38,7 +38,7 @@ def delete_all_movies():
 
 @movies_bp.route("/<int:movie_id>", methods=["GET"])
 def get_movie(movie_id):
-    movie = Movie.query.get(movie_id)
+    movie = db.session.get(Movie, movie_id)
     if not movie:
         return jsonify({"error": "movie not found"}), 404
     return jsonify(movie.to_dict()), 200
@@ -46,12 +46,16 @@ def get_movie(movie_id):
 
 @movies_bp.route("/<int:movie_id>", methods=["PUT"])
 def update_movie(movie_id):
-    movie = Movie.query.get(movie_id)
+    movie = db.session.get(Movie, movie_id)
     if not movie:
         return jsonify({"error": "movie not found"}), 404
 
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"error": "body must be a JSON object"}), 400
     if "title" in data:
+        if not isinstance(data["title"], str) or not data["title"].strip():
+            return jsonify({"error": "title must be a non-empty string"}), 400
         movie.title = data["title"]
     if "description" in data:
         movie.description = data["description"]
@@ -61,7 +65,7 @@ def update_movie(movie_id):
 
 @movies_bp.route("/<int:movie_id>", methods=["DELETE"])
 def delete_movie(movie_id):
-    movie = Movie.query.get(movie_id)
+    movie = db.session.get(Movie, movie_id)
     if not movie:
         return jsonify({"error": "movie not found"}), 404
 
