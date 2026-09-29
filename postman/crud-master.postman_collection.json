@@ -1,241 +1,471 @@
 {
   "info": {
     "name": "crud-master",
-    "description": "Tests for the Inventory API, exercised directly against http://localhost:8080. One request+test per endpoint from the project spec.",
+    "description": "Tests for crud-master. 'Inventory API' hits the Inventory API directly (base_url, default http://localhost:8080); 'API Gateway' goes through the gateway (gateway_url, default http://localhost:3000). Both defaults work with the Vagrant port forwarding.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "base_url", "value": "http://localhost:8080" },
-    { "key": "movie_id", "value": "" }
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "gateway_url",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "movie_id",
+      "value": ""
+    }
   ],
   "item": [
     {
-      "name": "POST /api/movies - create movie",
-      "request": {
-        "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": {
-          "mode": "raw",
-          "raw": "{\"title\":\"Inception\",\"description\":\"A dream heist thriller\"}"
+      "name": "Inventory API",
+      "description": "Direct tests of every Inventory endpoint ({{base_url}}). Run in order: later requests reuse the id created first.",
+      "item": [
+        {
+          "name": "POST /api/movies - create movie",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\":\"Inception\",\"description\":\"A dream heist thriller\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/movies",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "movies"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('response has id and title', () => {",
+                  "  pm.expect(body).to.have.property('id');",
+                  "  pm.expect(body.title).to.eql('Inception');",
+                  "});",
+                  "pm.collectionVariables.set('movie_id', body.id);"
+                ]
+              }
+            }
+          ]
         },
-        "url": { "raw": "{{base_url}}/api/movies", "host": ["{{base_url}}"], "path": ["api", "movies"] }
-      },
-      "event": [
         {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('status is 201', () => pm.response.to.have.status(201));",
-              "const body = pm.response.json();",
-              "pm.test('response has id and title', () => {",
-              "  pm.expect(body).to.have.property('id');",
-              "  pm.expect(body.title).to.eql('Inception');",
-              "});",
-              "pm.collectionVariables.set('movie_id', body.id);"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "POST /api/movies - second movie (for filter/delete-all tests)",
-      "request": {
-        "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": {
-          "mode": "raw",
-          "raw": "{\"title\":\"Interstellar\",\"description\":\"Space and time\"}"
+          "name": "POST /api/movies - second movie (for filter/delete-all tests)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\":\"Interstellar\",\"description\":\"Space and time\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/movies",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "movies"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
         },
-        "url": { "raw": "{{base_url}}/api/movies", "host": ["{{base_url}}"], "path": ["api", "movies"] }
-      },
-      "event": [
         {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('status is 201', () => pm.response.to.have.status(201));"
-            ]
-          }
+          "name": "GET /api/movies - list all",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/movies",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "movies"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('response is an array with at least 2 movies', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.be.an('array');",
+                  "  pm.expect(body.length).to.be.at.least(2);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/movies?title= - filter by title",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/movies?title=Incep",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "movies"
+              ],
+              "query": [
+                {
+                  "key": "title",
+                  "value": "Incep"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('only matching titles are returned', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.length).to.be.at.least(1);",
+                  "  pm.expect(body.every(m => m.title.toLowerCase().includes('incep'))).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/movies/:id - get single movie",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/movies/{{movie_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "movies",
+                "{{movie_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('returned movie matches requested id', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(Number(body.id)).to.eql(Number(pm.collectionVariables.get('movie_id')));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/movies/:id - not found",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/movies/999999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "movies",
+                "999999"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/movies/:id - update movie",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"description\":\"Updated description\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/movies/{{movie_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "movies",
+                "{{movie_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('description was updated', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.description).to.eql('Updated description');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /api/movies/:id - delete single movie",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/movies/{{movie_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "movies",
+                "{{movie_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('deleted id matches', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(Number(body.deleted)).to.eql(Number(pm.collectionVariables.get('movie_id')));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /api/movies - delete all",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/movies",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "movies"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('deleted count is present', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('deleted');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/movies - confirm empty after delete-all",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/movies",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "movies"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('no movies remain', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.be.an('array').that.is.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
     {
-      "name": "GET /api/movies - list all",
-      "request": {
-        "method": "GET",
-        "url": { "raw": "{{base_url}}/api/movies", "host": ["{{base_url}}"], "path": ["api", "movies"] }
-      },
-      "event": [
+      "name": "API Gateway",
+      "description": "Requests through the gateway ({{gateway_url}}): movie proxying and billing publishing.",
+      "item": [
         {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('status is 200', () => pm.response.to.have.status(200));",
-              "pm.test('response is an array with at least 2 movies', () => {",
-              "  const body = pm.response.json();",
-              "  pm.expect(body).to.be.an('array');",
-              "  pm.expect(body.length).to.be.at.least(2);",
-              "});"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "GET /api/movies?title= - filter by title",
-      "request": {
-        "method": "GET",
-        "url": {
-          "raw": "{{base_url}}/api/movies?title=Incep",
-          "host": ["{{base_url}}"],
-          "path": ["api", "movies"],
-          "query": [{ "key": "title", "value": "Incep" }]
-        }
-      },
-      "event": [
+          "name": "GET /api/movies - proxied to Inventory",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway_url}}/api/movies",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "api",
+                "movies"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('returns the Inventory list', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
         {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('status is 200', () => pm.response.to.have.status(200));",
-              "pm.test('only matching titles are returned', () => {",
-              "  const body = pm.response.json();",
-              "  pm.expect(body.every(m => m.title.toLowerCase().includes('incep'))).to.be.true;",
-              "});"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "GET /api/movies/:id - get single movie",
-      "request": {
-        "method": "GET",
-        "url": {
-          "raw": "{{base_url}}/api/movies/{{movie_id}}",
-          "host": ["{{base_url}}"],
-          "path": ["api", "movies", "{{movie_id}}"]
-        }
-      },
-      "event": [
+          "name": "POST /api/billing - order is queued",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/api/billing",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "api",
+                "billing"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"user_id\": \"3\", \"number_of_items\": \"5\", \"total_amount\": \"180\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 202', () => pm.response.to.have.status(202));",
+                  "pm.test('message was posted', () => pm.expect(pm.response.json().message).to.eql('Message posted'));"
+                ]
+              }
+            }
+          ]
+        },
         {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('status is 200', () => pm.response.to.have.status(200));",
-              "pm.test('returned movie matches requested id', () => {",
-              "  const body = pm.response.json();",
-              "  pm.expect(Number(body.id)).to.eql(Number(pm.collectionVariables.get('movie_id')));",
-              "});"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "GET /api/movies/:id - not found",
-      "request": {
-        "method": "GET",
-        "url": { "raw": "{{base_url}}/api/movies/999999", "host": ["{{base_url}}"], "path": ["api", "movies", "999999"] }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": { "exec": ["pm.test('status is 404', () => pm.response.to.have.status(404));"] }
-        }
-      ]
-    },
-    {
-      "name": "PUT /api/movies/:id - update movie",
-      "request": {
-        "method": "PUT",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": { "mode": "raw", "raw": "{\"description\":\"Updated description\"}" },
-        "url": {
-          "raw": "{{base_url}}/api/movies/{{movie_id}}",
-          "host": ["{{base_url}}"],
-          "path": ["api", "movies", "{{movie_id}}"]
-        }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('status is 200', () => pm.response.to.have.status(200));",
-              "pm.test('description was updated', () => {",
-              "  const body = pm.response.json();",
-              "  pm.expect(body.description).to.eql('Updated description');",
-              "});"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "DELETE /api/movies/:id - delete single movie",
-      "request": {
-        "method": "DELETE",
-        "url": {
-          "raw": "{{base_url}}/api/movies/{{movie_id}}",
-          "host": ["{{base_url}}"],
-          "path": ["api", "movies", "{{movie_id}}"]
-        }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('status is 200', () => pm.response.to.have.status(200));",
-              "pm.test('deleted id matches', () => {",
-              "  const body = pm.response.json();",
-              "  pm.expect(Number(body.deleted)).to.eql(Number(pm.collectionVariables.get('movie_id')));",
-              "});"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "DELETE /api/movies - delete all",
-      "request": {
-        "method": "DELETE",
-        "url": { "raw": "{{base_url}}/api/movies", "host": ["{{base_url}}"], "path": ["api", "movies"] }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('status is 200', () => pm.response.to.have.status(200));",
-              "pm.test('deleted count is present', () => {",
-              "  const body = pm.response.json();",
-              "  pm.expect(body).to.have.property('deleted');",
-              "});"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "GET /api/movies - confirm empty after delete-all",
-      "request": {
-        "method": "GET",
-        "url": { "raw": "{{base_url}}/api/movies", "host": ["{{base_url}}"], "path": ["api", "movies"] }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('status is 200', () => pm.response.to.have.status(200));",
-              "pm.test('no movies remain', () => {",
-              "  const body = pm.response.json();",
-              "  pm.expect(body).to.be.an('array').that.is.empty;",
-              "});"
-            ]
-          }
+          "name": "POST /api/billing - missing fields rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/api/billing",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "api",
+                "billing"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"user_id\": \"3\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('error names the missing fields', () => pm.expect(pm.response.json().error).to.include('missing fields'));"
+                ]
+              }
+            }
+          ]
         }
       ]
     }
