@@ -3,15 +3,7 @@
 A movie streaming platform built as three Python microservices behind an API Gateway.
 Each service runs in its own Vagrant VM, managed by PM2.
 
-```mermaid
-flowchart LR
-    client([Client]) -->|HTTP :3000| gw[API Gateway<br/>gateway-vm]
-    gw -->|HTTP :8080| inv[Inventory API<br/>inventory-vm]
-    inv --> mdb[(movies_db)]
-    gw -->|AMQP publish| q[[RabbitMQ<br/>billing_queue]]
-    q -->|consume + ack| bill[Billing API<br/>billing-vm]
-    bill --> bdb[(billing_db)]
-```
+<p align="center"><img src="docs/media/architecture.svg" alt="crud-master architecture: client, gateway-vm, inventory-vm, billing-vm" width="100%"></p>
 
 | Service | What it does | Talks over |
 |---|---|---|

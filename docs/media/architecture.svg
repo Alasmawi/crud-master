@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 660" width="1200" height="660" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <title>crud-master architecture</title>
+  <defs>
+    <marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563EB"/></marker>
+    <marker id="a-amqp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#EA580C"/></marker>
+    <marker id="a-sql" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#64748B"/></marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0F172A" flood-opacity="0.08"/>
+    </filter>
+    <style>
+      .title { font-size: 26px; font-weight: 700; fill: #0F172A; }
+      .subtitle { font-size: 14px; fill: #64748B; }
+      .vm-name { font-size: 16px; font-weight: 700; fill: #FFFFFF; }
+      .vm-ip { font-size: 13px; fill: #FFFFFF; opacity: 0.9; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .name { font-size: 16px; font-weight: 700; fill: #0F172A; }
+      .detail { font-size: 12.5px; fill: #475569; }
+      .mono { font-size: 12.5px; fill: #334155; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .label { font-size: 11.5px; font-weight: 600; }
+      .pm2 { font-size: 10.5px; font-weight: 700; fill: #FFFFFF; letter-spacing: 0.5px; }
+      .legend { font-size: 12.5px; fill: #475569; }
+    </style>
+  </defs>
+
+  <!-- canvas -->
+  <rect x="0.5" y="0.5" width="1199" height="659" rx="18" fill="#F8FAFC" stroke="#E2E8F0"/>
+
+  <text x="40" y="52" class="title">crud-master</text>
+  <text x="40" y="78" class="subtitle">Movie streaming platform · 3 Vagrant VMs · every app runs under PM2 in its own venv</text>
+
+  <!-- ===== Client ===== -->
+  <g filter="url(#shadow)">
+    <rect x="40" y="283" width="132" height="94" rx="14" fill="#FFFFFF" stroke="#CBD5E1"/>
+  </g>
+  <circle cx="106" cy="310" r="11" fill="none" stroke="#475569" stroke-width="2"/>
+  <path d="M86 336 q20 -20 40 0" fill="none" stroke="#475569" stroke-width="2"/>
+  <text x="106" y="356" class="name" text-anchor="middle">Client</text>
+  <text x="106" y="372" class="detail" text-anchor="middle">Postman · curl</text>
+
+  <!-- ===== gateway-vm ===== -->
+  <g filter="url(#shadow)">
+    <rect x="222" y="190" width="272" height="280" rx="16" fill="#FFFFFF" stroke="#C7D2FE"/>
+  </g>
+  <path d="M222 206 a16 16 0 0 1 16 -16 h240 a16 16 0 0 1 16 16 v28 h-272 z" fill="#4F46E5"/>
+  <text x="242" y="218" class="vm-name">gateway-vm</text>
+  <text x="474" y="218" class="vm-ip" text-anchor="end">192.168.56.13</text>
+
+  <rect x="244" y="258" width="228" height="148" rx="12" fill="#EEF2FF" stroke="#C7D2FE"/>
+  <text x="262" y="288" class="name">api-gateway-app</text>
+  <text x="262" y="310" class="mono">Flask · :3000</text>
+  <text x="262" y="338" class="detail">/api/movies  → Inventory</text>
+  <text x="262" y="358" class="detail">/api/billing → billing_queue</text>
+  <rect x="262" y="376" width="44" height="18" rx="9" fill="#1E293B"/>
+  <text x="284" y="389" class="pm2" text-anchor="middle">PM2</text>
+  <text x="316" y="389" class="detail">validates orders</text>
+
+  <text x="358" y="446" class="detail" text-anchor="middle">single entry point · no database</text>
+
+  <!-- ===== inventory-vm ===== -->
+  <g filter="url(#shadow)">
+    <rect x="590" y="110" width="570" height="220" rx="16" fill="#FFFFFF" stroke="#99F6E4"/>
+  </g>
+  <path d="M590 126 a16 16 0 0 1 16 -16 h538 a16 16 0 0 1 16 16 v28 h-570 z" fill="#0D9488"/>
+  <text x="610" y="138" class="vm-name">inventory-vm</text>
+  <text x="1140" y="138" class="vm-ip" text-anchor="end">192.168.56.11</text>
+
+  <rect x="612" y="178" width="236" height="128" rx="12" fill="#F0FDFA" stroke="#99F6E4"/>
+  <text x="630" y="208" class="name">inventory-app</text>
+  <text x="630" y="230" class="detail">Flask + SQLAlchemy · CRUD</text>
+  <text x="630" y="252" class="mono">:8080  /api/movies</text>
+  <rect x="630" y="272" width="44" height="18" rx="9" fill="#1E293B"/>
+  <text x="652" y="285" class="pm2" text-anchor="middle">PM2</text>
+
+  <!-- movies_db cylinder -->
+  <g>
+    <path d="M958 196 v84 a88 14 0 0 0 176 0 v-84" fill="#F0FDFA" stroke="#0D9488" stroke-width="1.5"/>
+    <ellipse cx="1046" cy="196" rx="88" ry="14" fill="#CCFBF1" stroke="#0D9488" stroke-width="1.5"/>
+    <text x="1046" y="236" class="name" text-anchor="middle">PostgreSQL</text>
+    <text x="1046" y="256" class="mono" text-anchor="middle">movies_db</text>
+    <text x="1046" y="276" class="detail" text-anchor="middle">movies(id, title, description)</text>
+  </g>
+  <line x1="850" y1="242" x2="954" y2="242" stroke="#64748B" stroke-width="2" marker-end="url(#a-sql)"/>
+  <text x="902" y="233" class="label" fill="#64748B" text-anchor="middle">SQL</text>
+
+  <!-- ===== billing-vm ===== -->
+  <g filter="url(#shadow)">
+    <rect x="590" y="360" width="570" height="230" rx="16" fill="#FFFFFF" stroke="#FED7AA"/>
+  </g>
+  <path d="M590 376 a16 16 0 0 1 16 -16 h538 a16 16 0 0 1 16 16 v28 h-570 z" fill="#EA580C"/>
+  <text x="610" y="388" class="vm-name">billing-vm</text>
+  <text x="1140" y="388" class="vm-ip" text-anchor="end">192.168.56.12</text>
+
+  <!-- RabbitMQ -->
+  <rect x="612" y="428" width="158" height="138" rx="12" fill="#FFF7ED" stroke="#FED7AA"/>
+  <text x="630" y="458" class="name">RabbitMQ</text>
+  <text x="630" y="480" class="mono">billing_queue</text>
+  <text x="630" y="500" class="detail">durable · :5672</text>
+  <text x="630" y="518" class="detail">UI :15672</text>
+  <g fill="#FB923C">
+    <rect x="630" y="534" width="24" height="16" rx="3"/>
+    <rect x="658" y="534" width="24" height="16" rx="3" opacity="0.75"/>
+    <rect x="686" y="534" width="24" height="16" rx="3" opacity="0.5"/>
+  </g>
+
+  <!-- billing-app -->
+  <rect x="818" y="428" width="150" height="138" rx="12" fill="#FFF7ED" stroke="#FED7AA"/>
+  <text x="834" y="458" class="name">billing-app</text>
+  <text x="834" y="480" class="detail">pika consumer</text>
+  <text x="834" y="500" class="detail">no HTTP surface</text>
+  <text x="834" y="518" class="detail">ack after commit</text>
+  <rect x="834" y="534" width="44" height="18" rx="9" fill="#1E293B"/>
+  <text x="856" y="547" class="pm2" text-anchor="middle">PM2</text>
+
+  <!-- billing_db cylinder -->
+  <g>
+    <path d="M1000 446 v92 a70 13 0 0 0 140 0 v-92" fill="#FFF7ED" stroke="#EA580C" stroke-width="1.5"/>
+    <ellipse cx="1070" cy="446" rx="70" ry="13" fill="#FFEDD5" stroke="#EA580C" stroke-width="1.5"/>
+    <text x="1070" y="488" class="name" text-anchor="middle">PostgreSQL</text>
+    <text x="1070" y="508" class="mono" text-anchor="middle">billing_db</text>
+    <text x="1070" y="528" class="detail" text-anchor="middle">orders</text>
+  </g>
+
+  <line x1="772" y1="492" x2="814" y2="492" stroke="#EA580C" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#a-amqp)"/>
+  <text x="793" y="483" class="label" fill="#EA580C" text-anchor="middle">deliver</text>
+  <line x1="970" y1="492" x2="996" y2="492" stroke="#64748B" stroke-width="2" marker-end="url(#a-sql)"/>
+  <text x="983" y="483" class="label" fill="#64748B" text-anchor="middle">SQL</text>
+
+  <!-- ===== cross-VM arrows ===== -->
+  <line x1="174" y1="330" x2="240" y2="330" stroke="#2563EB" stroke-width="2.5" marker-end="url(#a-http)"/>
+  <rect x="180.0" y="285" width="54" height="34" rx="10" fill="#DBEAFE"/>
+  <text x="207" y="299" class="label" fill="#1D4ED8" text-anchor="middle">HTTP</text>
+  <text x="207" y="313" class="label" fill="#1D4ED8" text-anchor="middle">:3000</text>
+
+  <path d="M474 300 C 535 300, 545 242, 608 242" fill="none" stroke="#2563EB" stroke-width="2.5" marker-end="url(#a-http)"/>
+  <rect x="502.0" y="251" width="80" height="34" rx="10" fill="#DBEAFE"/>
+  <text x="542" y="265" class="label" fill="#1D4ED8" text-anchor="middle">HTTP proxy</text>
+  <text x="542" y="279" class="label" fill="#1D4ED8" text-anchor="middle">:8080</text>
+
+  <path d="M474 370 C 535 370, 545 492, 608 492" fill="none" stroke="#EA580C" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#a-amqp)"/>
+  <rect x="498.0" y="419" width="88" height="34" rx="10" fill="#FFEDD5"/>
+  <text x="542" y="433" class="label" fill="#C2410C" text-anchor="middle">AMQP publish</text>
+  <text x="542" y="447" class="label" fill="#C2410C" text-anchor="middle">:5672</text>
+
+  <!-- ===== legend ===== -->
+  <line x1="40" y1="625" x2="72" y2="625" stroke="#2563EB" stroke-width="2.5"/>
+  <text x="80" y="629" class="legend">HTTP</text>
+  <line x1="134" y1="625" x2="166" y2="625" stroke="#EA580C" stroke-width="2.5" stroke-dasharray="7 5"/>
+  <text x="174" y="629" class="legend">AMQP (async, survives billing-app downtime)</text>
+  <line x1="470" y1="625" x2="502" y2="625" stroke="#64748B" stroke-width="2.5"/>
+  <text x="510" y="629" class="legend">SQL</text>
+  <text x="1160" y="629" class="legend" text-anchor="end">Forwarded to host: localhost:3000 · :8080 · :15672</text>
+</svg>

@@ -2,32 +2,7 @@
 
 ## Overview
 
-```mermaid
-flowchart TB
-    client([Client / Postman])
-
-    subgraph gvm [gateway-vm · 192.168.56.13]
-        gw[api-gateway-app<br/>Flask :3000]
-    end
-
-    subgraph ivm [inventory-vm · 192.168.56.11]
-        inv[inventory-app<br/>Flask + SQLAlchemy :8080]
-        mdb[(PostgreSQL<br/>movies_db)]
-    end
-
-    subgraph bvm [billing-vm · 192.168.56.12]
-        mq[[RabbitMQ<br/>billing_queue]]
-        bill[billing-app<br/>pika consumer]
-        bdb[(PostgreSQL<br/>billing_db)]
-    end
-
-    client -->|HTTP| gw
-    gw -->|HTTP proxy| inv
-    inv --> mdb
-    gw -->|publish| mq
-    mq -->|deliver| bill
-    bill --> bdb
-```
+![crud-master architecture](media/architecture.svg)
 
 Each VM holds only what its service needs. RabbitMQ lives on billing-vm, next to the only
 service that consumes from it.
