@@ -8,7 +8,7 @@ apt-get update -qq
 apt-get install -y -qq python3 python3-venv python3-pip curl gnupg ca-certificates
 
 if ! command -v node >/dev/null 2>&1; then
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - >/dev/null
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash - >/dev/null
     apt-get install -y -qq nodejs
 fi
 
