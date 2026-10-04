@@ -79,4 +79,4 @@ def billing():
     except Exception:
         return jsonify({"error": "message broker unavailable"}), 502
 
-    return jsonify({"message": "Message posted"}), 202
+    return jsonify({"message": "Message posted"}), 200

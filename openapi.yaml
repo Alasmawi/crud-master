@@ -151,7 +151,7 @@ paths:
             schema: { $ref: "#/components/schemas/Order" }
             example: { user_id: "3", number_of_items: "5", total_amount: "180" }
       responses:
-        "202":
+        "200":
           description: Message accepted by the queue.
           content:
             application/json:

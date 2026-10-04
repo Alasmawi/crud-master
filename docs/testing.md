@@ -9,7 +9,7 @@ The collection is `postman/crud-master.postman_collection.json`. It contains two
 | Folder | Target | Covers |
 |---|---|---|
 | **Inventory API** | `{{base_url}}` = `http://localhost:8080` | All 7 endpoints: create, list, filter by title, get by id (and 404), update, delete one, delete all |
-| **API Gateway** | `{{gateway_url}}` = `http://localhost:3000` | Movie proxying, a valid billing order (`202 Message posted`), an invalid order (`400`) |
+| **API Gateway** | `{{gateway_url}}` = `http://localhost:3000` | Movie proxying, a valid billing order (`200 Message posted`), an invalid order (`400`) |
 
 Every request has at least one test.
 
@@ -33,7 +33,7 @@ curl -i -X POST http://localhost:3000/api/billing \
   -d '{"user_id":"3","number_of_items":"5","total_amount":"180"}'
 ```
 
-Expected: `202 {"message": "Message posted"}`.
+Expected: `200 {"message": "Message posted"}`.
 
 Then check the new row on billing-vm:
 
@@ -64,7 +64,7 @@ rabbitmqadmin -u rabbit_user -p rabbit_pass publish exchange=amq.default \
 
 The row appears in `orders` right away.
 
-A malformed message is rejected: `sudo pm2 logs billing-app` shows `Discarding message`, and it
+A malformed message is rejected: `sudo pm2 logs billing_app` shows `Discarding message`, and it
 does not block the messages behind it.
 
 ## 4. Resilience: billing-app stopped
@@ -75,7 +75,7 @@ This is the key scenario from the subject.
 
    ```bash
    vagrant ssh billing-vm
-   sudo pm2 stop billing-app
+   sudo pm2 stop billing_app
    ```
 
 2. From the host, send an order:
@@ -98,7 +98,7 @@ This is the key scenario from the subject.
 4. Restart the consumer:
 
    ```bash
-   sudo pm2 start billing-app
+   sudo pm2 start billing_app
    ```
 
 5. Run the same `SELECT` again. The pending order now appears, and the queue is back to 0.
@@ -112,15 +112,15 @@ This is the key scenario from the subject.
 | Inventory at :8080 | `curl localhost:8080/api/movies` | `200 []` or a list |
 | Gateway proxies movies | `curl localhost:3000/api/movies` | Same result as the line above |
 | Postman tests | Collection runner / newman | All tests pass |
-| Billing through gateway | Section 2 | `202`, new row in `orders` |
+| Billing through gateway | Section 2 | `200`, new row in `orders` |
 | Queue publish via UI/CLI | Section 3 | New row in `orders` |
-| Billing down, gateway up | Section 4 | `202` while stopped, row appears after restart |
+| Billing down, gateway up | Section 4 | `200` while stopped, row appears after restart |
 | API documentation | `openapi.yaml` in Swagger Editor | All endpoints described |
 | No hardcoded credentials | `grep -rn pass srcs/` | Only `os.environ` reads |
 
 ## Recorded results
 
-These were captured on 2026-09-29 against the three VMs. The terminal parts come from
+These were captured on 2026-10-04 against the three VMs. The terminal parts come from
 `docs/media/demo.tape`: run `vhs docs/media/demo.tape` from the project root to re-record them.
 
 | Step | Screenshot |

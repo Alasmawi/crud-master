@@ -129,17 +129,20 @@ PM2 runs as root inside each VM, so use `sudo`:
 
 ```bash
 sudo pm2 list                     # status of the app on this VM
-sudo pm2 logs billing-app         # follow its logs
-sudo pm2 stop billing-app
-sudo pm2 start billing-app
-sudo pm2 restart billing-app
+sudo pm2 logs billing_app         # follow its logs
+sudo pm2 stop billing_app
+sudo pm2 start billing_app
+sudo pm2 restart billing_app
 ```
 
 | VM | PM2 app name |
 |---|---|
 | inventory-vm | `inventory-app` |
-| billing-vm | `billing-app` |
+| billing-vm | `billing_app` |
 | gateway-vm | `api-gateway-app` |
+
+The billing process is named `billing_app` (underscore) because the audit checklist runs
+`sudo pm2 stop billing_app`. Its source directory is still `srcs/billing-app`.
 
 ## Running without VMs
 

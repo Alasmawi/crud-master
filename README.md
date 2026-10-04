@@ -41,7 +41,7 @@ curl -X POST http://localhost:3000/api/billing -H "Content-Type: application/jso
 
 ## Test results
 
-All checks below were run against the three Vagrant VMs on 2026-09-29.
+All checks below were run against the three Vagrant VMs on 2026-10-04.
 
 ![Demo: VMs, movies via gateway, billing, resilience, Postman](docs/media/demo.gif)
 
@@ -51,11 +51,11 @@ Full-quality video: [docs/media/demo.mp4](docs/media/demo.mp4). To re-record it,
 | Check | Result |
 |---|---|
 | `vagrant status`: 3 VMs | ✅ inventory-vm, billing-vm, gateway-vm running |
-| `sudo pm2 list` on each VM | ✅ inventory-app, billing-app, api-gateway-app online |
+| `sudo pm2 list` on each VM | ✅ inventory-app, billing_app, api-gateway-app online |
 | Movies CRUD through the gateway | ✅ 201 create, 200 filter/get/update/delete, 404 unknown id |
-| `POST /api/billing` | ✅ 202 "Message posted", row stored in `orders` |
+| `POST /api/billing` | ✅ 200 "Message posted", row stored in `orders` |
 | Invalid order | ✅ 400 `missing fields: ...`, never queued |
-| billing-app stopped | ✅ gateway still answers 202, messages wait in `billing_queue`, `orders` unchanged |
+| billing-app stopped | ✅ gateway still answers 200, messages wait in `billing_queue`, `orders` unchanged |
 | billing-app restarted | ✅ pending messages processed, queue back to 0 |
 | Publish via RabbitMQ UI / `rabbitmqadmin` | ✅ order stored |
 | Postman collection (newman) | ✅ 13 requests, 24 assertions, **0 failures** ([HTML report](docs/media/postman-report.html)) |
@@ -76,6 +76,7 @@ More screenshots: [docs/testing.md](docs/testing.md#recorded-results).
 | [docs/architecture.md](docs/architecture.md) | Components, request flows, data model, failure handling, design choices |
 | [docs/deployment.md](docs/deployment.md) | Tools, `.env` variables, Vagrant, provisioning, PM2, running without VMs |
 | [docs/testing.md](docs/testing.md) | Postman collection, billing tests, resilience walkthrough |
+| [docs/audit.md](docs/audit.md) | Every audit question with the command that answers it |
 | [openapi.yaml](openapi.yaml) | OpenAPI 3 spec of the API Gateway (open in [Swagger Editor](https://editor.swagger.io/)) |
 
 ## API at a glance
@@ -91,6 +92,16 @@ All client requests go through the gateway.
 | PUT | `/api/movies/{id}` | Update one movie |
 | DELETE | `/api/movies/{id}` | Delete one movie |
 | POST | `/api/billing` | Queue an order → `{"message": "Message posted"}` |
+
+## Database schema
+
+| Database (VM) | Table | Columns |
+|---|---|---|
+| `movies_db` (inventory-vm) | `movies` | `id` integer, auto-generated primary key · `title` varchar(255), required · `description` text |
+| `billing_db` (billing-vm) | `orders` | `id` integer, auto-generated primary key · `user_id` varchar(255) · `number_of_items` integer · `total_amount` numeric(12,2) |
+
+Both tables are created by their app at startup. The roles and databases are created by the
+provisioning scripts.
 
 ## Stack
 

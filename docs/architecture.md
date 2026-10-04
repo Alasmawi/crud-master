@@ -21,7 +21,7 @@ The only service clients talk to. It has two jobs.
 - **Billing: queue publisher.** On `POST /api/billing`:
   1. The gateway checks the body is a valid order: a JSON object with `user_id`, an integer
      `number_of_items` and a numeric `total_amount`.
-  2. It publishes the body to `billing_queue` and answers `202 {"message": "Message posted"}`.
+  2. It publishes the body to `billing_queue` and answers `200 {"message": "Message posted"}`.
   3. Invalid orders get `400` and never reach the queue.
 
 | File | Role |
@@ -110,7 +110,7 @@ sequenceDiagram
     C->>G: POST /api/billing {user_id, number_of_items, total_amount}
     G->>G: validate order
     G->>Q: publish (persistent message)
-    G-->>C: 202 "Message posted"
+    G-->>C: 200 "Message posted"
     Note over G,B: The client is answered here. The rest runs whenever Billing is up.
     Q->>B: deliver message
     B->>DB: INSERT INTO orders
@@ -124,7 +124,7 @@ the queue. When it restarts, it consumes the backlog in order.
 
 | Situation | What happens |
 |---|---|
-| billing-app stopped | Gateway still answers `202`; messages wait in the durable queue and are processed on restart |
+| billing-app stopped | Gateway still answers `200`; messages wait in the durable queue and are processed on restart |
 | RabbitMQ restarted | The queue is durable and messages are persistent, so nothing queued is lost |
 | Invalid order sent to the gateway | `400`, not published |
 | Invalid message published directly to the queue | Billing logs it and rejects it without requeueing, so it can't block the messages behind it |

@@ -35,4 +35,6 @@ chmod +x /usr/local/bin/rabbitmqadmin
 rabbitmqadmin -u "${RABBITMQ_USER}" -p "${RABBITMQ_PASSWORD}" \
     declare queue name="${BILLING_QUEUE}" durable=true
 
-bash /vagrant/scripts/deploy-app.sh billing-app
+# PM2 name is billing_app: the audit checklist runs `sudo pm2 stop billing_app`.
+pm2 delete billing-app 2>/dev/null || true  # name used by earlier versions
+bash /vagrant/scripts/deploy-app.sh billing-app billing_app

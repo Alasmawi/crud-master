@@ -72,9 +72,9 @@ Sleep 1s
 Type "clear" Enter
 
 # --- 4. Resilience
-Type "# 4. Resilience: stop billing-app, orders still accepted and queued" Enter
+Type "# 4. Resilience: stop billing_app, orders still accepted and queued" Enter
 Sleep 500ms
-Type "vm billing-vm 'sudo pm2 stop billing-app'" Enter
+Type "vm billing-vm 'sudo pm2 stop billing_app'" Enter
 Sleep 4s
 Type `api -X POST localhost:3000/api/billing -d '{"user_id":"7","number_of_items":"1","total_amount":"15"}'` Enter
 Sleep 1500ms
@@ -85,9 +85,9 @@ Sleep 7s
 Screenshot docs/media/04-billing-stopped.png
 Sleep 1s
 Type "clear" Enter
-Type "# restart billing-app: the pending messages are processed" Enter
+Type "# restart billing_app: the pending messages are processed" Enter
 Sleep 500ms
-Type "vm billing-vm 'sudo pm2 start billing-app'" Enter
+Type "vm billing-vm 'sudo pm2 start billing_app'" Enter
 Sleep 6s
 Type "queue && orders" Enter
 Sleep 7s

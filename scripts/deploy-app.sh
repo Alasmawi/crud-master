@@ -1,5 +1,5 @@
 #!/bin/bash
-# Usage: deploy-app.sh <app-name>
+# Usage: deploy-app.sh <app-dir-name> [pm2-name]
 # Creates the app's venv, installs requirements, and (re)starts it under PM2.
 # The venv lives on the VM's own disk (/opt/venvs): pip fails inside the
 # VirtualBox shared folder (/vagrant).
@@ -7,9 +7,9 @@
 # PM2 captures them at start and `pm2 save` persists them across reboots.
 set -euo pipefail
 
-APP_NAME="$1"
-APP_DIR="/vagrant/srcs/${APP_NAME}"
-VENV_DIR="/opt/venvs/${APP_NAME}"
+APP_DIR="/vagrant/srcs/$1"
+VENV_DIR="/opt/venvs/$1"
+APP_NAME="${2:-$1}"  # name shown in `pm2 list`
 
 python3 -m venv "$VENV_DIR"
 "$VENV_DIR/bin/pip" install -q --upgrade pip
